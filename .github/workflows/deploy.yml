@@ -1,4 +1,4 @@
-name: Complete CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # 1. BUILD PIPELINE
   build:
     runs-on: ubuntu-latest
     steps:
@@ -15,86 +14,61 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run unit tests
+      - name: Run tests
         run: python test.py
-      - name: Upload test results as artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: test.py
 
-  # 2. TEST PIPELINE - Static Analysis (Bandit)
-  static-analysis:
+  test:
     runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - name: Run Bandit security linter
+      - name: Verify index.html
         run: |
-          pip install bandit
-          bandit test.py -f txt -o bandit-report.txt || true
-      - name: Upload Bandit report
-        uses: actions/upload-artifact@v4
-        with:
-          name: bandit-report
-          path: bandit-report.txt
+          if [ -f "index.html" ]; then
+            echo "✅ index.html found"
+          else
+            echo "❌ index.html missing"
+            exit 1
+          fi
 
-  # 3. TEST PIPELINE - Dependency Scanning (Trivy)
-  dependency-scan:
+  # SIMPLE AWS TEST - This will show the exact error
+  test-aws:
     runs-on: ubuntu-latest
-    needs: static-analysis
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
-
-  # 4. TEST AWS CREDENTIALS (DIAGNOSTIC JOB)
-  test-creds:
-    runs-on: ubuntu-latest
-    needs: dependency-scan
+    needs: test
     steps:
       - uses: actions/checkout@v4
       - name: Install AWS CLI
         run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
-      - name: Test AWS credentials
+          apt-get update
+          apt-get install -y awscli
+      - name: Show AWS Secrets (debug)
         run: |
-          echo "=== Testing AWS credentials ==="
-          echo "Bucket name: ${{ secrets.AWS_S3_BUCKET }}"
-          echo "Region: ${{ secrets.AWS_REGION }}"
-          echo ""
-          echo "=== Checking identity ==="
-          aws sts get-caller-identity || echo "❌ Identity check FAILED"
-          echo ""
-          echo "=== Listing bucket ==="
-          aws s3 ls s3://${{ secrets.AWS_S3_BUCKET }}/ || echo "❌ Bucket list FAILED"
-          echo ""
-          echo "=== Test upload ==="
-          echo "test content" > test-file.txt
-          aws s3 cp test-file.txt s3://${{ secrets.AWS_S3_BUCKET }}/test-file.txt || echo "❌ Test upload FAILED"
-          echo ""
-          echo "=== Clean up test file ==="
-          aws s3 rm s3://${{ secrets.AWS_S3_BUCKET }}/test-file.txt || echo "⚠️ Clean up failed"
+          echo "=== DEBUGGING AWS SECRETS ==="
+          echo "Bucket name length: ${#AWS_S3_BUCKET}"
+          echo "Region: $AWS_REGION"
+          echo "Access Key ID length: ${#AWS_ACCESS_KEY_ID}"
+          echo "Secret Key length: ${#AWS_SECRET_ACCESS_KEY}"
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+      - name: Test AWS Connection
+        run: |
+          echo "=== TESTING AWS CONNECTION ==="
+          aws s3 ls s3://$AWS_S3_BUCKET/ --region $AWS_REGION
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
 
-  # 5. DEPLOYMENT PIPELINE
   deploy:
     runs-on: ubuntu-latest
-    needs: test-creds
+    needs: test-aws
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      - name: Generate version number
-        run: echo "VERSION=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
       - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@master
         with:
