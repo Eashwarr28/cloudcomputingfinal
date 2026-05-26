@@ -3,6 +3,7 @@ name: Complete CI/CD Pipeline
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   # 1. BUILD PIPELINE
@@ -52,10 +53,43 @@ jobs:
           scan-ref: '.'
           format: 'table'
 
-  # 4. DEPLOYMENT PIPELINE
-  deploy:
+  # 4. TEST AWS CREDENTIALS (DIAGNOSTIC JOB)
+  test-creds:
     runs-on: ubuntu-latest
     needs: dependency-scan
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+      - name: Test AWS credentials
+        run: |
+          echo "=== Testing AWS credentials ==="
+          echo "Bucket name: ${{ secrets.AWS_S3_BUCKET }}"
+          echo "Region: ${{ secrets.AWS_REGION }}"
+          echo ""
+          echo "=== Checking identity ==="
+          aws sts get-caller-identity || echo "❌ Identity check FAILED"
+          echo ""
+          echo "=== Listing bucket ==="
+          aws s3 ls s3://${{ secrets.AWS_S3_BUCKET }}/ || echo "❌ Bucket list FAILED"
+          echo ""
+          echo "=== Test upload ==="
+          echo "test content" > test-file.txt
+          aws s3 cp test-file.txt s3://${{ secrets.AWS_S3_BUCKET }}/test-file.txt || echo "❌ Test upload FAILED"
+          echo ""
+          echo "=== Clean up test file ==="
+          aws s3 rm s3://${{ secrets.AWS_S3_BUCKET }}/test-file.txt || echo "⚠️ Clean up failed"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+
+  # 5. DEPLOYMENT PIPELINE
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test-creds
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
