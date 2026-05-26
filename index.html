@@ -1,14 +1,188 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My DevOps Project</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps CI/CD Pipeline Project | Cloud Computing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+
+        .status {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 8px;
+        }
+
+        .status h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .status p {
+            color: #555;
+            font-family: monospace;
+        }
+
+        .pipeline {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .pipeline h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .stage {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .stage-name {
+            font-weight: bold;
+            color: #555;
+            width: 100px;
+            text-align: left;
+        }
+
+        .stage-status {
+            flex: 1;
+            text-align: left;
+            color: #4caf50;
+        }
+
+        .arrow {
+            color: #999;
+            font-size: 20px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .deploy-time {
+            font-family: monospace;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .live {
+            animation: pulse 2s infinite;
+            color: #4caf50;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, Cloud Computing Class!</h1>
-    <p>This webpage was deployed automatically using CI/CD pipeline.</p>
-    <p>Deployment time: <span id="time"></span></p>
+    <div class="container">
+        <div class="badge">✅ CI/CD Pipeline Success</div>
+        
+        <h1> Cloud Computing Final Project</h1>
+        <p style="color: #666; margin-bottom: 20px;">Option 2: DevOps CI/CD Pipeline</p>
+
+        <div class="status">
+            <h3> Deployment Status</h3>
+            <p>Status: <span class="live">● LIVE</span></p>
+            <p>Deployed via: <strong>GitHub Actions → AWS S3</strong></p>
+            <p>Last Updated: <span id="timestamp" class="deploy-time"></span></p>
+        </div>
+
+        <div class="pipeline">
+            <h3>CI/CD Pipeline Stages</h3>
+            
+            <div class="stage">
+                <span class="stage-name">1. Build</span>
+                <span class="stage-status">✅ Python tests passed</span>
+            </div>
+            <div style="text-align: center; color: #999;">▼</div>
+            
+            <div class="stage">
+                <span class="stage-name">2. Test</span>
+                <span class="stage-status">✅ HTML file verified</span>
+            </div>
+            <div style="text-align: center; color: #999;">▼</div>
+            
+            <div class="stage">
+                <span class="stage-name">3. Deploy</span>
+                <span class="stage-status">✅ Synced to AWS S3</span>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>📊 Project Information</h3>
+            <p><strong>Student Name:</strong> [EASHWARAN A/L MAHESWARAN]</p>
+            <p><strong>Student ID:</strong> [012024091435]</p>
+            <p><strong>Course:</strong> CIT22103 Cloud Computing</p>
+            <p><strong>Technology Stack:</strong> GitHub + GitHub Actions + AWS S3 + Python</p>
+        </div>
+
+        <div class="footer">
+            <p>Automated deployment via CI/CD pipeline | Every push to main branch triggers build → test → deploy</p>
+            <p>© 2026 | Final Project Submission</p>
+        </div>
+    </div>
+
     <script>
-        document.getElementById('time').innerText = new Date().toLocaleString();
+        document.getElementById('timestamp').innerText = new Date().toLocaleString();
     </script>
 </body>
 </html>
