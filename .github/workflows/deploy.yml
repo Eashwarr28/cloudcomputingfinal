@@ -1,4 +1,4 @@
-name: Complete CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,9 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ============================================
-  # 1. BUILD PIPELINE
-  # ============================================
   build:
     runs-on: ubuntu-latest
     steps:
@@ -19,22 +16,19 @@ jobs:
           python-version: '3.11'
       - name: Run unit tests
         run: python test.py
-      - name: Upload test results as artifact
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
           path: test.py
 
-  # ============================================
-  # 2. TEST PIPELINE - Static Analysis (Bandit)
-  # ============================================
   static-analysis:
     runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - name: Run Bandit security linter
+      - name: Run Bandit
         run: |
           pip install bandit
           bandit test.py -f txt -o bandit-report.txt || true
@@ -44,97 +38,36 @@ jobs:
           name: bandit-report
           path: bandit-report.txt
 
-  # ============================================
-  # 3. TEST PIPELINE - Dependency Scanning (Trivy)
-  # ============================================
   dependency-scan:
     runs-on: ubuntu-latest
     needs: static-analysis
     steps:
       - uses: actions/checkout@v4
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
 
-  # ============================================
-  # 4. TEST AWS CREDENTIALS (Diagnostic)
-  # ============================================
-  test-aws:
-    runs-on: ubuntu-latest
-    needs: dependency-scan
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Test AWS connection
-        run: |
-          echo "=== TESTING AWS CONNECTION ==="
-          echo "Bucket: ${{ secrets.AWS_S3_BUCKET }}"
-          echo ""
-          echo "=== Listing bucket contents ==="
-          aws s3 ls s3://${{ secrets.AWS_S3_BUCKET }}/ || echo "Bucket list failed"
-          echo ""
-          echo "=== Testing upload ==="
-          echo "test-$(date +%s)" > testfile.txt
-          aws s3 cp testfile.txt s3://${{ secrets.AWS_S3_BUCKET }}/testfile.txt
-          aws s3 rm s3://${{ secrets.AWS_S3_BUCKET }}/testfile.txt
-          echo "✅ AWS credentials are working!"
-
-  # ============================================
-  # 5. DEPLOYMENT PIPELINE
-  # ============================================
   deploy:
     runs-on: ubuntu-latest
-    needs: test-aws
+    needs: dependency-scan
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Generate version number
-        run: |
-          echo "VERSION=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
-          echo "Deployment version: ${{ env.VERSION }}"
-      
-      - name: Configure AWS credentials
+      - name: Generate version
+        run: echo "VERSION=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+      - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      
       - name: Deploy to S3
         run: |
-          echo "=== DEPLOYING TO S3 ==="
-          echo "Version: ${{ env.VERSION }}"
-          echo "Bucket: ${{ secrets.AWS_S3_BUCKET }}"
-          echo ""
           aws s3 sync . s3://${{ secrets.AWS_S3_BUCKET }} \
             --acl public-read \
             --delete \
             --exclude ".git/*" \
-            --exclude ".github/*" \
-            --exclude "*.zip" \
-            --exclude "testfile.txt"
-          
-          echo ""
-          echo "=== DEPLOYMENT COMPLETE ==="
-          echo "Website URL: http://${{ secrets.AWS_S3_BUCKET }}.s3-website-${{ secrets.AWS_REGION }}.amazonaws.com"
-      
-      - name: Save deployment info
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-info
-          path: |
-            deployment-version.txt
-      - name: Create version file
-        run: |
-          echo "Deployment Version: ${{ env.VERSION }}" > deployment-version.txt
-          echo "Deployment Time: $(date)" >> deployment-version.txt
-          echo "Commit SHA: ${{ github.sha }}" >> deployment-version.txt
+            --exclude ".github/*"
