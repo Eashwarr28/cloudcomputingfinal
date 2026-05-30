@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 850px;
+            max-width: 900px;
             width: 100%;
             padding: 40px;
             text-align: center;
@@ -78,36 +78,43 @@
             margin-bottom: 15px;
         }
 
-        .stage {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            margin: 10px 0;
-            padding: 10px;
+        /* TABLE STYLE FOR PERFECT ALIGNMENT */
+        .pipeline-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pipeline-table tr {
             background: white;
             border-radius: 8px;
+        }
+
+        .pipeline-table td {
+            padding: 12px 10px;
+            text-align: left;
+        }
+
+        .stage-number {
+            font-weight: bold;
+            color: #555;
+            width: 40px;
         }
 
         .stage-name {
             font-weight: bold;
             color: #555;
             width: 140px;
-            text-align: left;
-            flex-shrink: 0;
         }
 
         .stage-status {
-            flex: 1;
-            text-align: left;
             color: #4caf50;
-            white-space: nowrap;
         }
 
-        .arrow {
+        .arrow-row td {
+            padding: 5px 10px;
             text-align: center;
             color: #999;
             font-size: 18px;
-            margin: 5px 0;
         }
 
         .deploy-time {
@@ -144,7 +151,7 @@
         <p style="color: #666; margin-bottom: 20px;">Option 2: DevOps CI/CD Pipeline</p>
 
         <div class="status">
-            <h3>📦 Deployment Status</h3>
+            <h3> Deployment Status</h3>
             <p>Status: <span class="live">● LIVE</span></p>
             <p>Deployed via: <strong>GitHub Actions → AWS S3</strong></p>
             <p>Last Updated: <span id="timestamp" class="deploy-time"></span></p>
@@ -153,50 +160,55 @@
         <div class="pipeline">
             <h3> CI/CD Pipeline Stages</h3>
             
-            <div class="stage">
-                <span class="stage-name">1. Build</span>
-                <span class="stage-status">✅ Python unit tests passed</span>
-            </div>
-            <div class="arrow">▼</div>
-            
-            <div class="stage">
-                <span class="stage-name">2. Static Analysis</span>
-                <span class="stage-status">✅ Bandit security scan completed</span>
-            </div>
-            <div class="arrow">▼</div>
-            
-            <div class="stage">
-                <span class="stage-name">3. Dependency Scan</span>
-                <span class="stage-status">✅ Trivy vulnerability scan completed</span>
-            </div>
-            <div class="arrow">▼</div>
-            
-            <div class="stage">
-                <span class="stage-name">4. Test</span>
-                <span class="stage-status">✅ HTML file verified</span>
-            </div>
-            <div class="arrow">▼</div>
-            
-            <div class="stage">
-                <span class="stage-name">5. Deploy</span>
-                <span class="stage-status">✅ Synced to AWS S3</span>
-            </div>
+            <table class="pipeline-table">
+                <tr>
+                    <td class="stage-number">1.</td>
+                    <td class="stage-name">Build</td>
+                    <td class="stage-status">✅ Python unit tests passed</td>
+                </tr>
+                <tr class="arrow-row">
+                    <td colspan="3">▼</td>
+                </tr>
+                <tr>
+                    <td class="stage-number">2.</td>
+                    <td class="stage-name">Static Analysis</td>
+                    <td class="stage-status">✅ Bandit security scan completed</td>
+                </tr>
+                <tr class="arrow-row">
+                    <td colspan="3">▼</td>
+                </tr>
+                <tr>
+                    <td class="stage-number">3.</td>
+                    <td class="stage-name">Dependency Scan</td>
+                    <td class="stage-status">✅ Trivy vulnerability scan completed</td>
+                </tr>
+                <tr class="arrow-row">
+                    <td colspan="3">▼</td>
+                </tr>
+                <tr>
+                    <td class="stage-number">4.</td>
+                    <td class="stage-name">Test</td>
+                    <td class="stage-status">✅ HTML file verified</td>
+                </tr>
+                <tr class="arrow-row">
+                    <td colspan="3">▼</td>
+                </tr>
+                <tr>
+                    <td class="stage-number">5.</td>
+                    <td class="stage-name">Deploy</td>
+                    <td class="stage-status">✅ Synced to AWS S3</td>
+                </tr>
+            </table>
         </div>
 
         <div class="status">
-            <h3>📊 Project Information</h3>
+            <h3> Project Information</h3>
             <p><strong>Student Name:</strong> EASHWARAN A/L MAHESWARAN, ELILHAN A/L TAMILANBAN, KASHVINAATH A/L MURUGAN</p>
             <p><strong>Student ID:</strong> 012024091435, 012024092346, 012024092349</p>
             <p><strong>Course:</strong> CIT22103 Cloud Computing</p>
             <p><strong>Technology Stack:</strong> GitHub + GitHub Actions + AWS S3 + Python</p>
             <p><strong>Security Tools:</strong> Bandit (Static Analysis) + Trivy (Dependency Scan)</p>
         </div>
-
-    <script>
-        document.getElementById('timestamp').innerText = new Date().toLocaleString();
-    </script>
-</body>
-</html>
 
     <script>
         document.getElementById('timestamp').innerText = new Date().toLocaleString();
