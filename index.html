@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 800px;
+            max-width: 850px;
             width: 100%;
             padding: 40px;
             text-align: center;
@@ -81,7 +81,7 @@
         .stage {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             margin: 10px 0;
             padding: 10px;
             background: white;
@@ -91,19 +91,23 @@
         .stage-name {
             font-weight: bold;
             color: #555;
-            width: 100px;
+            width: 140px;
             text-align: left;
+            flex-shrink: 0;
         }
 
         .stage-status {
             flex: 1;
             text-align: left;
             color: #4caf50;
+            white-space: nowrap;
         }
 
         .arrow {
+            text-align: center;
             color: #999;
-            font-size: 20px;
+            font-size: 18px;
+            margin: 5px 0;
         }
 
         .deploy-time {
@@ -122,6 +126,14 @@
             color: #4caf50;
             font-weight: bold;
         }
+
+        .footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.75em;
+            color: #888;
+        }
     </style>
 </head>
 <body>
@@ -132,7 +144,7 @@
         <p style="color: #666; margin-bottom: 20px;">Option 2: DevOps CI/CD Pipeline</p>
 
         <div class="status">
-            <h3>Deployment Status</h3>
+            <h3>📦 Deployment Status</h3>
             <p>Status: <span class="live">● LIVE</span></p>
             <p>Deployed via: <strong>GitHub Actions → AWS S3</strong></p>
             <p>Last Updated: <span id="timestamp" class="deploy-time"></span></p>
@@ -143,18 +155,30 @@
             
             <div class="stage">
                 <span class="stage-name">1. Build</span>
-                <span class="stage-status">✅ Python tests passed</span>
+                <span class="stage-status">✅ Python unit tests passed</span>
             </div>
-            <div style="text-align: center; color: #999;">▼</div>
+            <div class="arrow">▼</div>
             
             <div class="stage">
-                <span class="stage-name">2. Test</span>
+                <span class="stage-name">2. Static Analysis</span>
+                <span class="stage-status">✅ Bandit security scan completed</span>
+            </div>
+            <div class="arrow">▼</div>
+            
+            <div class="stage">
+                <span class="stage-name">3. Dependency Scan</span>
+                <span class="stage-status">✅ Trivy vulnerability scan completed</span>
+            </div>
+            <div class="arrow">▼</div>
+            
+            <div class="stage">
+                <span class="stage-name">4. Test</span>
                 <span class="stage-status">✅ HTML file verified</span>
             </div>
-            <div style="text-align: center; color: #999;">▼</div>
+            <div class="arrow">▼</div>
             
             <div class="stage">
-                <span class="stage-name">3. Deploy</span>
+                <span class="stage-name">5. Deploy</span>
                 <span class="stage-status">✅ Synced to AWS S3</span>
             </div>
         </div>
@@ -165,8 +189,14 @@
             <p><strong>Student ID:</strong> 012024091435, 012024092346, 012024092349</p>
             <p><strong>Course:</strong> CIT22103 Cloud Computing</p>
             <p><strong>Technology Stack:</strong> GitHub + GitHub Actions + AWS S3 + Python</p>
+            <p><strong>Security Tools:</strong> Bandit (Static Analysis) + Trivy (Dependency Scan)</p>
         </div>
-    </div>
+
+    <script>
+        document.getElementById('timestamp').innerText = new Date().toLocaleString();
+    </script>
+</body>
+</html>
 
     <script>
         document.getElementById('timestamp').innerText = new Date().toLocaleString();
